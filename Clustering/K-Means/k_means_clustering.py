@@ -1,4 +1,6 @@
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 import random
 
 class KMeansClustering:
@@ -12,16 +14,16 @@ class KMeansClustering:
 
         return distance
 
-    def fit(self, train_x, iterations):
+    def fit(self, points, iterations):
         clusters_centroids = []
 
         for _ in range(iterations):
-            centroids = np.array(random.sample(list(train_x), self.k)) # This will represent our centroid points
+            centroids = np.array(random.sample(list(points), self.k)) # This will represent our centroid points
 
             while True:
                 clusters = [[] for _ in range(self.k)] # This will store all of our clusters
 
-                for point in train_x:
+                for point in points:
                     distances = []
                     for i, centroid in enumerate(centroids):
                         distance = self.__eDistance(point, centroid)
@@ -58,12 +60,23 @@ class KMeansClustering:
         return label
 
 if __name__ == '__main__':
+    points = np.random.random(size=(1000, 2))
 
-    train_x = np.random.random(size=(10, 2))
+    model = KMeansClustering(5) # Hangon, why am I getting less classified values?
+    model.fit(points, 10)
 
-    model = KMeansClustering(3)
+    points_x = [x for x, y in points]
+    points_y = [y for x, y in points]
+    df = pd.DataFrame()
+    df['x'] = points_x
+    df['y'] = points_y
 
-    model.fit(train_x, 10)
+    labels = [model.cluster(df.iloc[i, :]) for i in range(len(df.index))]
+    df['label'] = labels
 
-    # Now I want to go through and test to see if my model works or not
-    print(model.cluster(train_x[2]))
+    unique_labels = df['label'].unique()
+    for label in unique_labels:
+        target_df = df[df['label'] == label]
+        plt.scatter(target_df['x'], target_df['y'])
+
+    plt.savefig('fig1.png')
